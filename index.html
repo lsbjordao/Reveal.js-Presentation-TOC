@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Presentation title</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.2/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.2/dist/theme/night.css" id="theme">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style type="text/css" media="screen">
+        .slides section.has-dark-background,
+        .slides section.has-dark-background h3 {
+            color: #fff;
+        }
+
+        .slides section.has-light-background,
+        .slides section.has-light-background h3 {
+            color: #222;
+        }
+
+        #toc {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 9999;
+            list-style-type: none;
+            padding: 0;
+            height: 80vh;
+            overflow: hidden;
+        }
+
+        #toc ul {
+            margin: 0;
+            padding: 0;
+            transform: translateY(0);
+        }
+
+        #toc li {
+            font-size: 16px;
+            margin-top: 10px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        #toc li.current {
+            font-weight: bold;
+            opacity: 1;
+        }
+
+        #toc li.sublevel {
+            margin-left: 20px;
+            font-weight: normal;
+        }
+
+        #toc .viewport {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #toc .overview {
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="reveal">
+
+        <div class="slides">
+
+            <section data-transition="convex">
+                <h2>Title</h2>
+                <h4>Subtitle</h4>
+                <br>
+                <p style="font-size: x-large;">
+                    Author
+                </p>
+            </section>
+
+            <section data-transition="convex">
+                <h4>First section</h4>
+            </section>
+
+            <section data-transition="convex">
+                <section data-transition="convex">
+                    <h4>Second section</h4>
+                </section>
+                <section data-transition="convex">
+                    <h4><i>First subsection</i></h4>
+                </section>
+                <section data-transition="convex">
+                    <h4><i>Second subsection</i></h4>
+                </section>
+            </section>
+
+            <section data-transition="convex">
+                <h4>End</h4>
+            </section>
+        </div>
+
+        <div id="toc">
+            <div class="viewport">
+                <div class="overview">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.2/dist/reveal.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        Reveal.initialize({
+            center: true,
+            history: true,
+            slideNumber: false,
+            keyboard: {
+                38: 'prev',
+                40: 'next',
+                37: null,
+                39: null
+            },
+            parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+            parallaxBackgroundSize: '2100px 1150px'
+        });
+
+        var toc = document.querySelector('#toc ul');
+        var sections = document.querySelectorAll('.slides > section');
+        var currentSectionIndex = 0;
+        var currentSubsectionIndex = 0;
+        var lastSectionIndex = sections.length - 1;
+
+        sections.forEach(function (section, index) {
+            var heading = section.querySelector('h4');
+            if (heading) {
+                var listItem = document.createElement('li');
+                listItem.textContent = heading.textContent;
+                listItem.classList.add('level-1');
+                if (index === currentSectionIndex) {
+                    listItem.classList.add('current');
+                }
+                if (index === 0 || index === lastSectionIndex) {
+                    listItem.style.display = 'none'; // Oculta o primeiro e o último item do TOC
+                }
+                toc.appendChild(listItem);
+
+                var subsections = section.querySelectorAll('section');
+                if (subsections.length > 1) {
+                    var sublist = document.createElement('ul');
+                    sublist.classList.add('sublist');
+                    listItem.appendChild(sublist);
+
+                    for (var subindex = 1; subindex < subsections.length; subindex++) {
+                        var subsection = subsections[subindex];
+                        var subHeading = subsection.querySelector('h4');
+                        if (subHeading) {
+                            var subListItem = document.createElement('li');
+                            subListItem.textContent = subHeading.textContent;
+                            subListItem.classList.add('level-2');
+                            subListItem.classList.add('sublevel');
+                            if (index === currentSectionIndex && subindex === currentSubsectionIndex + 1) {
+                                subListItem.classList.add('current');
+                            }
+                            sublist.appendChild(subListItem);
+
+                            subListItem.addEventListener('click', function () {
+                                var sectionIndex = Array.from(listItem.parentNode.children).indexOf(listItem);
+                                var subSectionIndex = Array.from(sublist.children).indexOf(this);
+                                Reveal.slide(sectionIndex, subSectionIndex + 1);
+                            });
+                        }
+                    }
+                }
+            }
+        });
+
+        Reveal.addEventListener('slidechanged', function (event) {
+            currentSectionIndex = event.indexh;
+            currentSubsectionIndex = event.indexv - 1; // Subtrai 1 para alinhar com o índice dos subníveis
+
+            var currentItems = document.querySelectorAll('#toc li.current');
+            currentItems.forEach(function (item) {
+                item.classList.remove('current');
+            });
+
+            var currentSectionItem = toc.querySelector('.level-1:nth-child(' + (currentSectionIndex + 1) + ')');
+            if (currentSectionItem) {
+                currentSectionItem.classList.add('current');
+            }
+
+            var currentSubsectionItem = currentSectionItem.querySelector('.level-2:nth-child(' + (currentSubsectionIndex + 1) + ')');
+            if (currentSubsectionItem) {
+                currentSubsectionItem.classList.add('current');
+            }
+
+            // Scroll TOC to center current slide
+            var tocViewport = document.querySelector('#toc .viewport');
+            var tocOverview = document.querySelector('#toc .overview');
+            var currentSlide = currentSectionItem || currentSubsectionItem;
+            if (currentSlide) {
+                var currentSlideOffsetTop = currentSlide.offsetTop;
+                var currentSlideOffsetHeight = currentSlide.offsetHeight;
+                var viewportHeight = tocViewport.clientHeight;
+                var currentSlideOffsetMiddle = currentSlideOffsetTop + currentSlideOffsetHeight / 2 - viewportHeight / 2;
+                tocViewport.scrollTo({
+                    top: currentSlideOffsetMiddle,
+                    behavior: 'smooth'
+                });
+            }
+
+            // Ocultar ou exibir o TOC com base no índice do slide atual
+            if ((currentSectionIndex === 0 || currentSectionIndex === lastSectionIndex) && currentSubsectionIndex === -1) {
+                document.getElementById('toc').style.display = 'none';
+            } else {
+                document.getElementById('toc').style.display = 'block';
+            }
+        });
+
+        $(document).ready(function () {
+            $('.level-1').click(function () {
+                var index = $(this).index();
+                Reveal.slide(index);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
